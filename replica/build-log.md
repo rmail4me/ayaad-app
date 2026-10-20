@@ -2,6 +2,14 @@
 
 Format: `S## · YYYY-MM-DD · status · notes`
 
+## 2026-10-20 — Live + fully wired
+
+- https://ayaad-app.vercel.app is public (Deployment Protection off)
+- DATABASE_URL switched to Supabase Transaction pooler (port 6543, user `postgres.PROJECTREF`) — session pooler was failing on serverless
+- Stripe webhook endpoint created in Stripe dashboard (prod URL) with 3 events (`checkout.session.completed`, `.async_payment_failed`, `.expired`); `STRIPE_WEBHOOK_SECRET` populated in Vercel env vars
+- Smoke-test confirmed from the live URL: 2 real bookings on prod, 2 invoices issued (AYD-2026-000001, 000002), 2 balance ledger rows, 2 ERP outbox events waiting for Reonxt
+- Review packs written: `replica/handover_erp_integration.md` (Reonxt), `replica/review_internal.md` (internal team)
+
 ## 2026-10-20 — Deployed to Vercel
 
 - Repo pushed to https://github.com/rmail4me/ayaad-app (69 files, main branch)

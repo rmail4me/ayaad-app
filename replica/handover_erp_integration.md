@@ -1,0 +1,215 @@
+# Ayaad DTC App ↔ Reonxt ERP — Integration Handover Pack
+
+Prepared for the Reonxt engineering team.
+From: Riswan Kizhakkayil (Ayaad)
+Date: 2026-10-20
+App version: M1 pilot
+Live URL (test): https://ayaad-app.vercel.app
+
+---
+
+## 1. What the Ayaad app is
+
+A corporate-only booking app for Ayaad's cleaning, AC, pest, painting, water-tank, and handyman services. Target: 10–50 UAE corporate customers who prepay a balance and draw against it per booking.
+
+**Clone-room-built, independent of Justlife.** No shared infrastructure, no shared code.
+
+Pricing matched to Justlife on every service variant we both offer; Keyper (our rate) is the fallback where Justlife doesn't offer that variant.
+
+---
+
+## 2. What we need from Reonxt
+
+A **thin webhook API** that accepts booking events from the Ayaad app and acknowledges receipt. Everything else — dispatch, team scheduling, inventory, finance — stays in Reonxt as it is today.
+
+**Direction:** one-way push from Ayaad → Reonxt, with optional callbacks the other way for status updates.
+
+### 2.1 The one endpoint we need (minimum viable)
+
+```
+POST  https://<reonxt-host>/api/ayaad/v1/booking-events
+Headers:
+  Authorization: Bearer <AYAAD_SHARED_SECRET>
+  Content-Type: application/json
+  Idempotency-Key: <uuid>  (we also put the same key in the body)
+```
+
+Body (one JSON per event):
+
+```json
+{
+  "event_type": "booking.paid",
+  "event_id": "booking.paid:3c2ee261-c556-4e86-964c-86da9ae81e6c",
+  "occurred_at": "2026-10-20T17:40:00.000Z",
+  "booking": {
+    "id": "3c2ee261-c556-4e86-964c-86da9ae81e6c",
+    "public_ref": "15270A",
+    "service": {
+      "slug": "ac-cleaning",
+      "name_en": "AC Cleaning",
+      "category": "ac"
+    },
+    "tiers": [
+      { "tier_key": "basic_ac", "label_en": "Basic AC cleaning (filter + vent) — ducted/central", "qty": 1, "unit_price_fils": 18500 }
+    ],
+    "scheduled_start_at": "2026-10-21T06:00:00.000Z",
+    "duration_min": 60,
+    "subtotal_fils": 17619,
+    "vat_fils": 881,
+    "total_fils": 18500,
+    "currency": "AED",
+    "paid_from": "prepaid",
+    "invoice_number": "AYD-2026-000002",
+    "special_instructions": "security code 1234"
+  },
+  "company": {
+    "id": "00000000-0000-0000-0000-000000c0ffee",
+    "name_en": "Ayaad Demo Corp",
+    "trn": "100-DEMO-TRN"
+  },
+  "contact": {
+    "id": "<user uuid>",
+    "full_name": "Riswan Kizhakkayil",
+    "email": "rmail4me@gmail.com",
+    "phone": null,
+    "phone_country": null
+  },
+  "address": {
+    "label": "Office",
+    "line1": "Building 12",
+    "line2": null,
+    "city": "Dubai",
+    "country": "AE",
+    "lat": null,
+    "lng": null,
+    "access_method": "home_present",
+    "access_notes": null,
+    "pets": false
+  }
+}
+```
+
+Expected response: `200 OK` with any body. We treat non-2xx as a failure and retry.
+
+### 2.2 Event types we send
+
+| Event type | When | Reonxt action |
+|---|---|---|
+| `booking.paid` | Customer pays (prepaid or card) | Create a work order; assign a crew |
+| `booking.rescheduled` | Customer edits the slot | Update the existing work order's time |
+| `booking.cancelled` | Customer cancels (within policy) | Mark work order cancelled; release crew |
+| `booking.amended` | Customer edits address or instructions | Update work order fields |
+| `payment.confirmed` | Payment settles (card capture, cash receipt) | Finance mirror only — ops already acted on `booking.paid` |
+
+For M1 we only emit `booking.paid`. The other four will be added in M2 (reschedule/cancel UI not yet shipped).
+
+### 2.3 Idempotency, retries, backoff (how our side behaves)
+
+- Every event has an `event_id` (also sent as `Idempotency-Key` header). Format: `<event_type>:<booking_id>`. If Reonxt receives the same `event_id` twice, you MUST return `200 OK` without doing anything (treat it as acknowledged).
+- We retry with exponential backoff: 1 min → 5 min → 15 min → 1h → 6h → 24h → DLQ after 10 attempts.
+- A row sits in our `erp_outbox` table until Reonxt returns `200`. If Reonxt is down for a day, we hold the backlog and drain when it recovers.
+- A manual **"Replay"** button in our admin UI (M2) lets ops re-push a specific row to Reonxt.
+
+### 2.4 Status callbacks from Reonxt → Ayaad (nice-to-have, M3)
+
+If Reonxt wants to light up the real-time status chips in the Ayaad app:
+
+```
+POST  https://ayaad-app.vercel.app/webhooks/erp/callbacks
+Headers:
+  Authorization: Bearer <REONXT_SHARED_SECRET>  (different from ours)
+  Content-Type: application/json
+Body:
+  {
+    "callback_type": "pro.assigned" | "pro.en_route" | "pro.arrived" | "service.completed",
+    "idempotency_key": "<uuid>",
+    "booking_public_ref": "15270A",
+    "pro_display_name": "First-name only, no PII",
+    "pro_phone_last4": "1234",
+    "occurred_at": "2026-10-21T06:35:00.000Z"
+  }
+```
+
+We'll dedupe by `idempotency_key`. Not blocking for pilot.
+
+---
+
+## 3. Auth model (one shared secret per direction)
+
+- `AYAAD_SHARED_SECRET` — generated by Reonxt, stored in our Vercel env vars; we send it on every outbound call
+- `REONXT_SHARED_SECRET` — generated by us, stored in Reonxt; you send it on every callback
+- Rotate every 6–12 months
+
+Alternative we'd be comfortable with: mTLS (we exchange CA-signed certs). Let us know which you prefer.
+
+---
+
+## 4. Field-mapping table (Ayaad → Reonxt)
+
+Reonxt team: fill in the right-hand column with the matching field names in your work order and customer models.
+
+| Ayaad field | Example | Reonxt field |
+|---|---|---|
+| booking.public_ref | `15270A` | — |
+| booking.service.slug | `ac-cleaning` | — (map to Reonxt service id) |
+| booking.scheduled_start_at | `2026-10-21T06:00:00Z` (UTC) | — (render in Dubai TZ) |
+| booking.total_fils | `18500` (integer fils; 1 AED = 100 fils) | — |
+| booking.invoice_number | `AYD-2026-000002` | — |
+| company.id | `00000000-...` (UUID) | — (map to Reonxt customer id) |
+| company.trn | `100-DEMO-TRN` | — (customer TRN field) |
+| contact.email | `rmail4me@gmail.com` | — (primary contact email) |
+| address.line1 + city + country | `Building 12, Dubai, AE` | — |
+| address.access_method | `home_present` / `key_with_security` / `under_mat` / `unlocked` | — (map to your access-method enum) |
+
+---
+
+## 5. State machine (Ayaad side)
+
+```
+draft ──pay──▶ pending_payment ──webhook──▶ paid ──▶ matched* ──▶ in_progress* ──▶ completed*
+                                 └──cancel/expire──▶ cancelled / expired
+```
+`*` = states driven by Reonxt status callbacks (M3). Until then, we flip them manually from the admin console.
+
+For M1, every booking in `erp_outbox` is `booking.paid`.
+
+---
+
+## 6. Testing path
+
+1. Reonxt stands up the webhook endpoint (sandbox is fine)
+2. Shares the URL + `AYAAD_SHARED_SECRET` with us
+3. We set `REONXT_API_URL` + `REONXT_API_KEY` + `REONXT_PUSH_ENABLED=true` in Vercel env vars
+4. Create a test booking on https://ayaad-app.vercel.app → prepaid balance pays → `booking.paid` event pushes to Reonxt
+5. Reonxt confirms receipt (200 OK with the work order ref would be ideal in the response)
+6. Repeat with 10 bookings to confirm idempotency + concurrent handling
+
+---
+
+## 7. What we are NOT asking Reonxt to do
+
+- Expose any UI for Ayaad customers (we own the whole customer app)
+- Share customer-level data with us (we only need status callbacks on bookings we created)
+- Rebuild your dispatch, inventory, or finance modules — Reonxt is the system of record for all of those
+- Replace your existing partner-ops workflows — this is a direct-to-customer sales channel, in addition to your other channels
+
+---
+
+## 8. Open questions for the Reonxt team
+
+1. Can you expose a webhook endpoint on your side within a sprint, or do we need to build an adapter?
+2. What's your preferred auth (shared secret vs mTLS)?
+3. What format do you want prices in — fils (integer) or AED (decimal)?
+4. Do you want callbacks (section 2.4) now or in M3?
+5. What's your Dubai-timezone handling — do you want ISO-UTC or already-converted "Asia/Dubai" strings?
+6. Idempotency: do you want us to send a short-lived request `Idempotency-Key` header, body `event_id`, or both? (We can do either or both.)
+7. Who's the point of contact for this integration on your side?
+
+---
+
+## 9. Appendix
+
+- Full data model and architecture decisions: see `replica/architecture.md` in the Ayaad repo
+- Live app: https://ayaad-app.vercel.app (test mode; no real payments)
+- Source: https://github.com/rmail4me/ayaad-app (private; we can add a Reonxt engineer as collaborator on request)
+- Ayaad side point of contact: Riswan — rmail4me@gmail.com / +971 58 161 4653
