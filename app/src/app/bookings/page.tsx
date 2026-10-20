@@ -7,8 +7,9 @@ import { fmtAED } from '@/lib/pricing';
 import type { BookingStatus } from '@/lib/types';
 
 const STATUS_CHIP: Record<BookingStatus, { label: string; variant: Parameters<typeof Chip>[0]['variant'] }> = {
-  draft:           { label: 'Draft',           variant: 'neutral' },
-  pending_payment: { label: 'Pending payment', variant: 'warning' },
+  draft:            { label: 'Draft',             variant: 'neutral' },
+  pending_approval: { label: 'Awaiting approval', variant: 'warning' },
+  pending_payment:  { label: 'Pending payment',   variant: 'warning' },
   paid:            { label: 'Confirmed',       variant: 'accent' },
   matched:         { label: 'Team assigned',   variant: 'accent' },
   in_progress:     { label: 'In progress',     variant: 'warning' },
