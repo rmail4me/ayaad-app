@@ -2,6 +2,15 @@
 
 Format: `S## · YYYY-MM-DD · status · notes`
 
+## 2026-10-20 — Deployed to Vercel
+
+- Repo pushed to https://github.com/rmail4me/ayaad-app (69 files, main branch)
+- Vercel project created, root directory set to `app/`
+- 7 env vars configured (2 Config for NEXT_PUBLIC_*, 5 Sensitive)
+- First deployment live; verify exact URL from Vercel dashboard (initial fetch to `ayaad-app.vercel.app` 404'd — may be `ayaad-app-rmail4me.vercel.app`)
+- Still pending: real `STRIPE_WEBHOOK_SECRET` (needs webhook endpoint created against prod URL)
+- Resend domain still verifying; sending from `onboarding@resend.dev` sandbox meanwhile
+
 ## 2026-10-20 — B2B pivot
 
 Scope changed from consumer DTC to **corporate customers with prepaid balance**. New model, new auth, same catalog + stepper.
