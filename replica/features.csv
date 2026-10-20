@@ -1,0 +1,147 @@
+feature,area,priority,original,clone,notes
+Phone + OTP auth,auth,must,yes,yes,UAE/KSA phone +971/+966; 6-digit OTP; resend 60s
+Country selector UAE/KSA,auth,must,yes,yes,Resets service catalog + currency
+EN/AR language toggle with RTL,i18n,must,yes,no,"Full RTL layout, Arabic numerals optional"
+Set location via GPS or address search,discovery,must,yes,no,Coverage check against city polygon
+Service grid homepage,discovery,must,yes,yes,10 primary tiles + 'all services' link
+Service landing page per vertical,discovery,should,yes,yes,Hero + FAQ accordion + CTA
+Promo banner on home,discovery,should,yes,no,Deep-link to prefilled booking
+Search services,discovery,could,yes,no,Free-text + popular queries
+Home cleaning booking stepper,booking,must,yes,partial,4 steps: service details → slot → address → pay
+Hour counter 2-12,booking,must,yes,yes,Driver of total price
+Pro count 1-4,booking,must,yes,partial,Max 4 per FAQ
+Materials toggle (+AED 10/hr per pro),booking,must,yes,partial,Per-pro multiplier
+Special instructions textarea,booking,must,yes,yes,Edit up to 4h before
+Date carousel today +30d,booking,must,yes,partial,Sold-out days greyed
+Time slot grid (30-min),booking,must,yes,partial,Live availability check
+Friday surcharge +AED 5/hr,booking,must,yes,no,Shown in price breakdown
+Same-day booking,booking,must,yes,no,'Under 60s to book' promise
+Pick saved address,booking,must,yes,yes,Default pre-selected
+Add new address inline,booking,must,yes,yes,Pin on map + manual fields
+Access-method radio (home/key/mat/unlocked),booking,must,yes,yes,Required for lockouts
+Pets at home toggle,booking,should,yes,yes,Hint to pro
+Keys with security option,booking,should,yes,no,Common UAE pattern
+Payment: Cash,payment,must,yes,yes,Exact change required
+Payment: Visa/Mastercard,payment,must,yes,yes,3DS; auth at booking
+Payment: Tabby (BNPL),payment,could,yes,no,Commercial deal needed
+Payment: Justlife Credits,payment,skip,yes,skip,Prepaid wallet; up to 30% bonus | SCOPE CUT 2026-10-20: vouchers+credits removed
+Voucher code input,payment,skip,yes,skip,Validate at Step 4 | SCOPE CUT 2026-10-20: vouchers+credits removed
+Price breakdown (subtotal/materials/Fri/voucher/service fee/total),payment,must,yes,yes,Transparent before confirm
+Service fee at checkout,payment,should,yes,yes,'Platform + customer care' per FAQ
+Payment auth → capture after service (<7d),payment,must,yes,partial,<7-day: capture after; >7-day: immediate
+Immediate capture for bookings >7d out,payment,must,yes,partial,Different refund path
+3DS challenge flow,payment,must,yes,yes,UAE issuers mandate
+Add to Apple Wallet (pass),confirmation,could,yes,no,Observed in listing
+Order confirmation screen,confirmation,must,yes,yes,Ref + ETA
+Push notification: pro assigned,confirmation,must,yes,no,'Matched' state
+WhatsApp notification: pro on the way,confirmation,should,yes,no,FAQ: 'WA message when cleaner arrives'
+Push notification: pro arrived,confirmation,must,yes,no,
+Push notification: service completed,confirmation,must,yes,no,Triggers rating request
+Bookings list — Upcoming,bookings,must,yes,partial,Status badges
+Bookings list — Past,bookings,must,yes,partial,
+Booking details view,bookings,must,yes,yes,Full service summary + pro + map
+Reschedule booking,bookings,must,yes,no,Fee if <2h; same-day not guaranteed
+Cancel booking,bookings,must,yes,no,Fee table applies
+Change booking address,bookings,should,yes,no,Per FAQ
+Edit instructions post-booking,bookings,should,yes,no,Up to 4h before
+Extend cleaning hours mid-session,bookings,could,yes,no,Requires live chat + pro's schedule
+Request specific cleaner,bookings,should,yes,no,Driver of 90% weekly stickiness
+Recurring booking (weekly/bi-weekly),bookings,should,yes,no,Lifetime discount banner
+Lifetime discount on recurring,bookings,should,yes,no,Honor one-time flag
+Credits wallet balance,credits,skip,yes,skip,SCOPE CUT 2026-10-20: vouchers+credits removed
+Credits top-up (package tiles),credits,skip,yes,skip,'+30% bonus' promoted | SCOPE CUT 2026-10-20: vouchers+credits removed
+Credits auto-apply at checkout,credits,skip,yes,skip,When balance ≥ total | SCOPE CUT 2026-10-20: vouchers+credits removed
+Credits expiry 60 days,credits,skip,yes,skip,FIFO expiry | SCOPE CUT 2026-10-20: vouchers+credits removed
+Credits transaction history,credits,skip,yes,skip,SCOPE CUT 2026-10-20: vouchers+credits removed
+Refund to Credits (immediate),refunds,skip,yes,skip,On cancel inside policy | SCOPE CUT 2026-10-20: vouchers+credits removed
+Refund to bank (7-14 business days),refunds,must,yes,no,For >7d bookings
+Cancellation fee table,refunds,must,yes,no,FAQ references but not published — infer from behavior
+Reschedule fee table,refunds,must,yes,no,Same
+Rate pro 1-5 stars,ratings,must,yes,no,Post-session
+Rating free-text comment,ratings,must,yes,no,
+Tip the pro inline,ratings,should,yes,no,Direct payout to pro
+View pro profile (rating + bookings count),ratings,should,yes,no,S22
+Rebook same pro from past booking,ratings,should,yes,no,One-tap
+Live chat support (7 AM-11 PM),support,should,yes,no,Off-hours banner
+Attach photos in chat,support,should,yes,no,Quality / damage reports
+Help / FAQ accordion,support,must,yes,no,Self-serve first
+Report quality issue (within 24h),support,should,yes,no,Photo + description → case specialist <24h
+Report damaged item (within 24h),support,should,yes,no,
+Report missing item (within 24h),support,should,yes,no,
+Request invoice via chat → email,support,could,yes,no,
+Profile: name/email/phone,account,must,yes,no,
+Addresses CRUD,account,must,yes,no,Max 10 reasonable
+Payment methods CRUD,account,must,yes,no,
+Notifications preferences,account,should,yes,no,Push / SMS / email toggles
+Settings: language,account,must,yes,no,
+Settings: country,account,must,yes,no,
+Logout + delete account,account,must,yes,no,UAE PDPL compliance
+Promotions / offers screen,marketing,should,yes,no,Deep-link to prefilled booking
+Deep-link vouchers from marketing URLs,marketing,skip,yes,skip,Auto-apply at checkout | SCOPE CUT 2026-10-20: vouchers+credits removed
+Blog (SEO),marketing,could,yes,no,Separate CMS
+Service area pages (60+ SEO landers),marketing,could,yes,no,City × service grid
+Pro matching algorithm,ops,must,yes,no,Nearest + available + rating-weighted; recurring prefer last pro
+Pro reassignment on cancel/sickout,ops,must,yes,no,'Notify + offer alternatives' per FAQ
+Multi-pro assignment to one booking,ops,must,yes,no,Up to 4 pros same slot
+Supply materials kit (products + equipment),ops,must,yes,no,Published list in FAQ
+Pro training / excellence center,ops,could,yes,no,'Trained at JL Excellence Center' — build your own
+Pro background checks,ops,must,yes,no,UAE regulatory expectation
+Service: AC Basic Cleaning (per unit),catalog,must,no,yes,# of AC units × unit price; inclusions + exclusions shown
+Service: Duct Cleaning (flat),catalog,must,no,yes,Per home
+Service: Duct & Coil Deep Cleaning (flat),catalog,must,no,yes,Per home
+Service: Deep Cleaning Apartment (tier by BR),catalog,must,no,yes,Studio/1BR/2BR/3BR/4BR
+Service: Deep Cleaning Villa (tier by BR),catalog,must,no,yes,3BR/4BR/5BR/6BR+
+Service: Furniture Cleaning (per piece),catalog,must,no,yes,1-seater/2-seater/3-seater/L-shape/mattress/carpet
+Service: General Pest Control Apartment (tier),catalog,must,no,yes,One method; no roach/termite/bedbug fork
+Service: General Pest Control Villa (tier),catalog,must,no,yes,
+Service: Handyman (per visit),catalog,must,no,yes,Call-out + optional hourly extension
+Service: Painting (quote only),catalog,must,no,no,Admin issues quote; customer accepts
+Service: Water Tank Cleaning (flat),catalog,must,no,yes,Per tank
+Service page: inclusions list,catalog,must,no,yes,Shown before stepper
+Service page: exclusions list,catalog,must,no,yes,
+Service page: images gallery,catalog,should,no,no,
+Service page: duration estimate,catalog,should,no,yes,
+Service page: service-specific FAQ,catalog,should,no,no,
+Service page: cancellation window,catalog,must,no,yes,
+Pricing model: per_unit,pricing,must,no,yes,AC + Furniture
+Pricing model: tier_bedroom,pricing,must,no,yes,Deep + Pest; split Apartment vs Villa
+Pricing model: flat,pricing,must,no,yes,"Duct, Duct+Coil, Water Tank"
+Pricing model: per_visit,pricing,must,no,yes,Handyman: call-out + optional hourly extension (internal hourly only; not exposed as a standalone catalog service)
+Pricing model: quote (admin-issued),pricing,must,no,no,Painting flow: request → admin quote → accept → pay
+Quote request flow (Painting),booking,must,no,no,Customer submits scope + photos; admin issues quote; email + in-app notify
+Quote accept/decline → convert to booking,booking,must,no,no,
+Admin: pricing tier CRUD per service,admin,must,no,no,Replaces generic 'pricing table'
+Admin: issue quote (painting),admin,must,no,no,Set amount; email + in-app notify customer
+Admin: tier labels EN/AR,admin,should,no,no,
+Insurance badge on service,trust,skip,yes,skip,Only if actually insured
+'10M+ bookings' / '4.78 avg' trust stats,trust,skip,yes,skip,Use honest numbers
+'Trained by Justlife Excellence Center',trust,skip,yes,skip,Trademark + fact-claim
+WhatsApp Business number for support,support,could,yes,no,Common UAE pattern
+In-app survey / NPS,analytics,could,yes,no,Post-session
+"Referral program (""invite a friend"")",growth,could,no,no,Not seen on JL but easy win
+Admin console: login,admin,must,no,no,Separate /admin route; role-based
+Admin: pricing table CRUD,admin,must,no,no,Hourly rate per service × city; Fri surcharge; materials fee per pro
+Admin: service on/off toggle,admin,must,no,no,Hide a service from customer app without deleting
+Admin: coverage polygon editor,admin,should,no,no,Draw service area per city
+Admin: voucher/promo CRUD,admin,skip,no,skip,Code + value + rules + usage cap | SCOPE CUT 2026-10-20: vouchers+credits removed
+Admin: user search + view bookings,admin,must,no,no,Support agents need this
+Admin: issue inbox (quality/damage/missing),admin,must,no,no,Triage within 24h per policy
+Admin: refund action,admin,must,no,no,Issue bank refund OR add credits
+Admin: push a status update to a booking,admin,should,no,no,Fallback if ERP webhook not live
+Admin: analytics dashboard,admin,could,no,no,Bookings / revenue / rating by day
+Invoice: PDF generation on payment success,invoicing,must,no,yes,Logo + VAT breakdown + line items + bilingual EN/AR
+Invoice: email to customer,invoicing,must,no,yes,Attached PDF + hosted link
+Invoice: in-app view + download,invoicing,must,no,partial,From booking details screen
+Invoice: numbering sequence (per legal entity),invoicing,must,no,yes,UAE VAT-compliant; monotonic
+Invoice: VAT line (5%) with TRN,invoicing,must,no,yes,UAE FTA requirement
+Invoice: credit note on refund/cancel,invoicing,must,no,no,Separate numbering; references original invoice
+Invoice: resend to customer,invoicing,should,no,no,Admin-triggered
+ERP push: booking → Reonxt work order,erp,must,no,yes,Webhook on booking paid; idempotent
+ERP push: booking amendment,erp,must,no,no,On reschedule / cancel / address edit
+ERP push: payment confirmation,erp,should,no,no,Reonxt mirror for finance
+ERP callback: pro assigned,erp,should,no,no,Drives 'matched' push notification
+ERP callback: pro en-route,erp,should,no,no,Drives WA 'cleaner on the way'
+ERP callback: pro arrived,erp,should,no,no,
+ERP callback: service completed,erp,should,no,no,Triggers rating request
+ERP retry queue + DLQ,erp,must,no,no,"If Reonxt is down, retain + retry"
+ERP integration admin page,admin,must,no,no,API key config + delivery log + replay

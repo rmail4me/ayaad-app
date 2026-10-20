@@ -1,0 +1,130 @@
+/* ==========================================================================
+   Ayaad — Design Tokens (CSS custom properties)
+   Generated from tokens.json. Do not edit here; edit the JSON and regenerate.
+   Brand: Primary Blue #0045BA, Accent Yellow #F0C000, Surface White.
+   All text/bg pairs pass WCAG AA (contrast.py verified).
+   ========================================================================== */
+
+:root {
+  /* Colors — roles */
+  --color-bg:              #ffffff;
+  --color-surface:         #f6f8fb;
+  --color-surface-raised:  #ffffff;
+  --color-surface-muted:   #eef1f6;
+  --color-border:          #dde2ea;
+  --color-border-input:    #5d6675;
+  --color-focus-ring:      #0045ba;
+
+  --color-text:            #0a0f2c;
+  --color-text-muted:      #4b5365;
+  --color-text-subtle:     #6b7382;
+
+  --color-accent:          #0045ba;
+  --color-accent-hover:    #003a9f;
+  --color-accent-active:   #00327c;
+  --color-accent-subtle:   #e6edff;
+  --color-on-accent:       #ffffff;
+
+  --color-accent-2:        #f0c000;
+  --color-accent-2-hover:  #d4a800;
+  --color-on-accent-2:     #0a0f2c;
+
+  --color-danger:          #b42318;
+  --color-danger-subtle:   #fde7e5;
+  --color-on-danger:       #ffffff;
+
+  --color-success:         #15803d;
+  --color-success-subtle:  #dcfce7;
+
+  --color-warning:         #854d0e;
+  --color-warning-subtle:  #fef3c7;
+
+  --color-info:            #0045ba;
+  --color-info-subtle:     #e6edff;
+
+  --color-overlay:         rgba(10, 15, 44, .55);
+
+  /* Typography */
+  --font-sans:    'Plus Jakarta Sans', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans-ar: 'Noto Sans Arabic', Dubai, Tajawal, system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs:      12px;   --leading-xs:      16px;   --weight-xs:      500;
+  --text-sm:      14px;   --leading-sm:      20px;   --weight-sm:      400;
+  --text-base:    16px;   --leading-base:    24px;   --weight-base:    400;
+  --text-lg:      18px;   --leading-lg:      28px;   --weight-lg:      500;
+  --text-xl:      20px;   --leading-xl:      28px;   --weight-xl:      600;
+  --text-2xl:     24px;   --leading-2xl:     32px;   --weight-2xl:     700;
+  --text-3xl:     30px;   --leading-3xl:     36px;   --weight-3xl:     700;
+  --text-display: 40px;   --leading-display: 44px;   --weight-display: 800;
+
+  /* Spacing (4-base + fine 2px for icon alignment) */
+  --space-0:  0;
+  --space-1:  2px;
+  --space-2:  4px;
+  --space-3:  6px;
+  --space-4:  8px;
+  --space-5:  12px;
+  --space-6:  16px;
+  --space-7:  20px;
+  --space-8:  24px;
+  --space-9:  32px;
+  --space-10: 40px;
+  --space-11: 48px;
+  --space-12: 64px;
+  --space-13: 80px;
+  --space-14: 96px;
+  --space-15: 128px;
+
+  /* Radius */
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-pill: 999px;
+
+  /* Shadow */
+  --shadow-sm:    0 1px 2px rgba(10, 15, 44, .06);
+  --shadow-card:  0 1px 2px rgba(10, 15, 44, .06), 0 2px 6px rgba(10, 15, 44, .08);
+  --shadow-pop:   0 12px 32px rgba(10, 15, 44, .16);
+  --shadow-focus: 0 0 0 3px rgba(0, 69, 186, .35);
+
+  /* Motion */
+  --motion-fast:    150ms;
+  --motion-base:    200ms;
+  --motion-slow:    300ms;
+  --ease:           cubic-bezier(.2, .8, .2, 1);
+  --ease-out:       cubic-bezier(0, 0, .2, 1);
+  --ease-in:        cubic-bezier(.4, 0, 1, 1);
+
+  /* Layout */
+  --container-max:    1200px;
+  --container-prose:  680px;
+  --header-mobile:    56px;
+  --header-desktop:   72px;
+  --bottom-nav:       64px;
+  --sidebar:          280px;
+  --touch-target-min: 44px;
+
+  /* Z-index scale */
+  --z-base:     0;
+  --z-sticky:   10;
+  --z-dropdown: 20;
+  --z-overlay:  40;
+  --z-modal:    50;
+  --z-toast:    60;
+  --z-tooltip:  70;
+}
+
+/* RTL: when document is dir="rtl", font-family swap to Arabic stack */
+[dir="rtl"] body { font-family: var(--font-sans-ar); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 1ms;
+    --motion-base: 1ms;
+    --motion-slow: 1ms;
+  }
+}
