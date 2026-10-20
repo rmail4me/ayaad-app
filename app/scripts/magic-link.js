@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // One-shot magic-link generator (no email, no Resend).
-// Usage:  node scripts/magic-link.js teammate@example.com
+// Usage:  node scripts/magic-link.js teammate@example.com [ttl_hours]
+//   default ttl is 24 hours; max 168 (7 days). Shorter is safer.
 //
 // Does three things:
 //   1. Pre-creates the user if they don't exist yet
@@ -23,9 +24,10 @@ const DEMO_COMPANY_ID = '00000000-0000-0000-0000-000000c0ffee';
 
 const email = (process.argv[2] || '').trim().toLowerCase();
 if (!/.+@.+\..+/.test(email)) {
-  console.error('Usage: node scripts/magic-link.js <email>');
+  console.error('Usage: node scripts/magic-link.js <email> [ttl_hours=24]');
   process.exit(2);
 }
+const ttlHours = Math.min(168, Math.max(1, Number(process.argv[3] ?? 24)));
 
 (async () => {
   const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
@@ -49,10 +51,10 @@ if (!/.+@.+\..+/.test(email)) {
     }
   }
 
-  // 3: mint a fresh 15-min magic-link token
+  // 3: mint a fresh magic-link token (default 24h; configurable via 2nd arg)
   const token = randomBytes(32).toString('base64url');
   const tokenHash = createHash('sha256').update(token).digest('hex');
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000);
 
   await sql`
     insert into auth_tokens (token_hash, user_id, email, purpose, expires_at)
@@ -60,7 +62,7 @@ if (!/.+@.+\..+/.test(email)) {
   `;
 
   const url = `${APP_URL}/auth/verify?t=${encodeURIComponent(token)}`;
-  console.log('\n--- magic link (valid 15 min, single-use) ---');
+  console.log(`\n--- magic link (valid ${ttlHours}h, single-use) ---`);
   console.log(url);
   console.log('----------------------------------------------\n');
   console.log('Share by WhatsApp / Signal / in person.');
