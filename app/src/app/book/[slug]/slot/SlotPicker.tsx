@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { Button } from '@/ui/Button';
+import { StickyActions } from '@/ui/Card';
 
 const SLOT_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16];
 
@@ -71,7 +72,9 @@ export function SlotPicker({ slug, duration_min }: { slug: string; duration_min:
         </div>
       </div>
 
-      <Button fullWidth size="lg" disabled={hour === null} onClick={confirm}>Continue</Button>
+      <StickyActions>
+        <Button fullWidth size="lg" disabled={hour === null} onClick={confirm}>Continue</Button>
+      </StickyActions>
     </div>
   );
 }

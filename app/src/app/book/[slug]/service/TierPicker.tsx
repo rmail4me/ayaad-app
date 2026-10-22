@@ -5,7 +5,7 @@ import { Minus, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { Button } from '@/ui/Button';
 import { Textarea } from '@/ui/Input';
-import { PriceBreakdown } from '@/ui/Card';
+import { PriceBreakdown, StickyActions } from '@/ui/Card';
 import { quote } from '@/lib/pricing';
 import type { Service, ServiceTier } from '@/lib/types';
 
@@ -93,9 +93,11 @@ export function TierPicker({ service, tiers }: { service: Service; tiers: Servic
           service_fee_fils={q.service_fee_fils} vat_fils={q.vat_fils} total_fils={q.total_fils} />
       </div>
 
-      <Button fullWidth size="lg" disabled={!canContinue} onClick={continueBooking}>
-        Continue to pick a time
-      </Button>
+      <StickyActions>
+        <Button fullWidth size="lg" disabled={!canContinue} onClick={continueBooking}>
+          Continue to pick a time
+        </Button>
+      </StickyActions>
     </div>
   );
 }

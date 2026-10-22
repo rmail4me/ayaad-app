@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Wallet, CreditCard, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { Button } from '@/ui/Button';
+import { StickyActions } from '@/ui/Card';
 import { payBookingAction } from './actions';
 
 export function PayForm({
@@ -79,9 +80,11 @@ export function PayForm({
 
       {err && <p className="text-sm text-danger" role="alert">{err}</p>}
 
-      <Button fullWidth size="lg" loading={paying} onClick={pay}>
-        {method === 'prepaid' ? 'Confirm booking' : 'Continue to Stripe'}
-      </Button>
+      <StickyActions>
+        <Button fullWidth size="lg" loading={paying} onClick={pay}>
+          {method === 'prepaid' ? 'Confirm booking' : 'Continue to Stripe'}
+        </Button>
+      </StickyActions>
       <p className="text-xs text-text-muted text-center">
         A VAT invoice to the company TRN is emailed immediately after confirmation.
       </p>

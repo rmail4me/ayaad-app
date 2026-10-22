@@ -51,6 +51,20 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
   );
 }
 
+export function StickyActions({ children }: { children: React.ReactNode }) {
+  // Mobile: sticky bar hovering above the fixed bottom nav. Desktop: inline.
+  return (
+    <div className={clsx(
+      'sticky bottom-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+0.5rem)]',
+      'md:static -mx-4 md:mx-0 px-4 md:px-0 py-3 md:py-0',
+      'bg-bg/95 md:bg-transparent backdrop-blur-sm md:backdrop-blur-0',
+      'border-t md:border-0 border-border',
+    )}>
+      {children}
+    </div>
+  );
+}
+
 export function Empty({
   title, body, action,
 }: { title: string; body?: string; action?: React.ReactNode }) {
