@@ -103,14 +103,24 @@ Expected response: `200 OK` with any body. We treat non-2xx as a failure and ret
 
 For M1 we only emit `booking.paid`. The other four will be added in M2 (reschedule/cancel UI not yet shipped).
 
-### 2.3 Idempotency, retries, backoff (how our side behaves)
+### 2.3 Invoice numbering — Ayaad app is the source of truth
+
+**Please do NOT generate your own invoice number for bookings coming from this channel.** The Ayaad app issues each invoice number at the moment of payment and sends it in the `booking.paid` event (field `booking.invoice_number`, e.g. `AYD-2026-000002`).
+
+- Numbers are monotonic per legal entity, per year (`AYD-` for Ayaad Musaeida Cleaning Services DMCC, `AYM-` for Ayaade Musaeida LLC)
+- UAE FTA requires a single, unbroken, un-reused sequence per TRN — splitting the sequence across systems breaks compliance
+- Reonxt should **mirror** this number into your work-order + accounting records so one invoice reference appears in both systems. Finance reconciliation stays trivial.
+
+If Reonxt also needs to track an internal work-order ID separately, that's fine — just don't overwrite the invoice number.
+
+### 2.4 Idempotency, retries, backoff (how our side behaves)
 
 - Every event has an `event_id` (also sent as `Idempotency-Key` header). Format: `<event_type>:<booking_id>`. If Reonxt receives the same `event_id` twice, you MUST return `200 OK` without doing anything (treat it as acknowledged).
 - We retry with exponential backoff: 1 min → 5 min → 15 min → 1h → 6h → 24h → DLQ after 10 attempts.
 - A row sits in our `erp_outbox` table until Reonxt returns `200`. If Reonxt is down for a day, we hold the backlog and drain when it recovers.
 - A manual **"Replay"** button in our admin UI (M2) lets ops re-push a specific row to Reonxt.
 
-### 2.4 Status callbacks from Reonxt → Ayaad (nice-to-have, M3)
+### 2.5 Status callbacks from Reonxt → Ayaad (nice-to-have, M3)
 
 If Reonxt wants to light up the real-time status chips in the Ayaad app:
 
