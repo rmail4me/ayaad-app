@@ -16,11 +16,13 @@ export async function requestLoginAction(email: string, _nextUrl: string):
 // link-preview bots (WhatsApp, iMessage, Slack) can't burn single-use tokens.
 export async function confirmLoginAction(fd: FormData) {
   const token = String(fd.get('t') ?? '');
-  const next  = String(fd.get('next') ?? '/');
+  // Open-redirect guard: only allow in-app paths that start with a single slash
+  const rawNext = String(fd.get('next') ?? '/');
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/';
   const res = await completeLogin(token);
   if (!res.ok) {
-    redirect(`/auth?error=${encodeURIComponent(res.error)}`);
+    redirect(`/auth?error=${encodeURIComponent(res.error)}` as any);
   }
   await setSessionCookie(res.user.id);
-  redirect(next);
+  redirect(next as any);
 }
