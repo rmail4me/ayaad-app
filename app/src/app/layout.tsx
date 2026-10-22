@@ -18,7 +18,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const user = await getCurrentUser();
   return (
     <html lang="en" dir="ltr">
-      <body className="min-h-dvh pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom))]">
+      <body className="min-h-dvh pb-[calc(var(--bottom-nav)+env(safe-area-inset-bottom)+2rem)] md:pb-0">
         <header className="sticky top-0 z-sticky h-14 md:h-18 bg-bg border-b border-border">
           <div className="max-w-container mx-auto h-full px-4 md:px-6 flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-2" aria-label="Ayaad home">
