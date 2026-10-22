@@ -1,15 +1,23 @@
-// Magic-link verify — GET renders a "Confirm sign-in" button; actual token
-// consume happens on the POST (server action). This defeats WhatsApp /
-// iMessage / Slack link-preview bots that would otherwise burn the
-// single-use token before the human even clicks.
+// Magic-link verify.
+// GET: just render a "Continue" button; never consume the token.
+// POST (triggered by button): completeLogin + set cookie + redirect.
+// If already signed in, skip the button and go straight home.
 import Link from 'next/link';
-import { Button } from '@/ui/Button';
-import { confirmLoginAction } from '../actions';
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/data';
+import { ConfirmForm } from './ConfirmForm';
 
 export default async function VerifyPage({
   searchParams,
 }: { searchParams: Promise<{ t?: string; next?: string }> }) {
   const { t, next } = await searchParams;
+
+  // If the person already has a valid session, skip the Continue step
+  const user = await getCurrentUser();
+  if (user) {
+    const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
+    redirect(safeNext as any);
+  }
 
   if (!t) {
     return (
@@ -27,13 +35,10 @@ export default async function VerifyPage({
     <div className="max-w-sm mx-auto space-y-6 pt-10 text-center">
       <h1 className="text-xl font-bold text-text">Confirm sign-in</h1>
       <p className="text-sm text-text-muted">
-        You&apos;re one tap away. We&apos;ll complete sign-in and take you to your dashboard.
+        One tap to complete sign-in. Please wait after you press — our database is in Seoul and
+        it takes a couple of seconds.
       </p>
-      <form action={confirmLoginAction}>
-        <input type="hidden" name="t" value={t} />
-        <input type="hidden" name="next" value={next || '/'} />
-        <Button type="submit" fullWidth size="lg">Continue to Ayaad</Button>
-      </form>
+      <ConfirmForm token={t} next={next || '/'} />
       <p className="text-xs text-text-muted">
         Single-use link. Expires 24 hours after it was generated.
       </p>
