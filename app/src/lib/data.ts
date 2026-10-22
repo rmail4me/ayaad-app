@@ -279,6 +279,7 @@ export async function payFromPrepaid(booking_id: string, actor_user_id: string):
 
   const inv = await issueInvoiceFor(booking_id);
   try { await sendInvoiceEmailNow(inv.id); } catch (e) { console.warn('[invoice-email] inline fail', e); }
+  try { await notifyOpsOfBooking(booking_id); } catch (e) { console.warn('[ops-notify] fail', e); }
   await enqueueErpPush(booking_id);
   return { booking: await bookingFromDb(booking_id), invoice: inv };
 }
@@ -442,6 +443,55 @@ export async function sendInvoiceEmailNow(invoice_id: string) {
            <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/bookings/${row.bookingId}">View booking</a></p>`,
     attachments: [{ filename: `invoice-${row.seqScope}-${row.number}.pdf`, content: pdf }],
   });
+}
+
+export async function getInvoiceIdForBooking(booking_id: string): Promise<string | null> {
+  const [row] = await db.select({ id: schema.invoices.id })
+    .from(schema.invoices).where(eq(schema.invoices.bookingId, booking_id)).limit(1);
+  return row?.id ?? null;
+}
+
+export async function notifyOpsOfBooking(booking_id: string) {
+  const to = process.env.OPS_NOTIFY_EMAIL || 'sales@ayaad.ae';
+  const b = await bookingFromDb(booking_id);
+  const [svc]  = await db.select().from(schema.services).where(eq(schema.services.id, b.service_id)).limit(1);
+  const [addr] = await db.select().from(schema.addresses).where(eq(schema.addresses.id, b.address_id)).limit(1);
+  const [user] = await db.select().from(schema.users).where(eq(schema.users.id, b.user_id)).limit(1);
+  const company = b.company_id ? await getCompany(b.company_id) : null;
+
+  const subject = `[AYD-booking] ${b.public_ref} · ${svc?.nameEn} · AED ${(b.total_fils/100).toFixed(2)}`;
+  const whenDubai = new Date(b.start_at).toLocaleString('en-GB', {
+    timeZone: 'Asia/Dubai', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+  });
+  const tiersList = b.tiers.length
+    ? b.tiers.map(t => `  • ${t.label_en}${t.qty > 1 ? ` × ${t.qty}` : ''} — AED ${(t.unit_price_fils * t.qty / 100).toFixed(2)}`).join('<br>')
+    : `  • (flat / per-visit)`;
+
+  const html = `
+    <div style="font-family:system-ui,sans-serif;color:#0a0f2c;padding:20px;max-width:600px;">
+      <h2 style="color:#0045ba;margin-top:0;">New booking · ${b.public_ref}</h2>
+      <table style="border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Service</td><td><strong>${svc?.nameEn}</strong></td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">When</td><td>${whenDubai} · Dubai</td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Address</td><td>${addr?.label}: ${addr?.line1}${addr?.line2 ? `, ${addr.line2}` : ''}, ${addr?.city}</td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Access</td><td>${addr?.accessMethod}${addr?.pets ? ' · pets' : ''}</td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Customer</td><td>${user?.fullName ?? user?.email ?? user?.phone ?? '-'}${company ? ` · <strong>${company.name_en}</strong>${company.trn ? ` · TRN ${company.trn}` : ''}` : ''}</td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Email</td><td>${user?.email ?? '-'}</td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Items</td><td>${tiersList}</td></tr>
+        ${b.special_instructions ? `<tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Instructions</td><td><em>${b.special_instructions.replace(/</g,'&lt;')}</em></td></tr>` : ''}
+        <tr><td style="padding:8px 10px 4px 0;color:#4b5365;border-top:1px solid #dde2ea;"><strong>Total</strong></td><td style="padding:8px 0 4px 0;border-top:1px solid #dde2ea;"><strong>AED ${(b.total_fils/100).toFixed(2)}</strong> (incl. VAT) via ${b.paid_from}</td></tr>
+        <tr><td style="padding:4px 10px 4px 0;color:#4b5365;">Invoice</td><td>${b.invoice_number ?? 'pending'}</td></tr>
+      </table>
+      <p style="margin-top:20px;"><a href="${process.env.NEXT_PUBLIC_APP_URL}/bookings/${b.id}" style="background:#0045ba;color:#fff;padding:10px 18px;border-radius:12px;text-decoration:none;font-weight:600;">Open booking</a></p>
+    </div>`;
+
+  if (!process.env.RESEND_API_KEY) {
+    console.log(`[ops-notify] would email ${to}: ${subject}`);
+    return;
+  }
+  try {
+    await resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to, subject, html });
+  } catch (e) { console.warn('[ops-notify] send fail', e); }
 }
 
 async function enqueueErpPush(booking_id: string) {

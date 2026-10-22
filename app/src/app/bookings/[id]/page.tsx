@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Card, Chip, PriceBreakdown } from '@/ui/Card';
-import { getCurrentUser, getBooking, getAddress, listServices } from '@/lib/data';
+import { getCurrentUser, getBooking, getAddress, listServices, getInvoiceIdForBooking } from '@/lib/data';
 import { fmtAED } from '@/lib/pricing';
 
 export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,7 +11,11 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
   if (!user) redirect(`/auth?next=/bookings/${id}`);
   const b = await getBooking(id);
   if (!b || b.user_id !== user.id) notFound();
-  const [services, address] = await Promise.all([ listServices(), getAddress(b.address_id) ]);
+  const [services, address, invoiceId] = await Promise.all([
+    listServices(),
+    getAddress(b.address_id),
+    getInvoiceIdForBooking(b.id),
+  ]);
   const service = services.find(s => s.id === b.service_id);
 
   const lines = b.tiers.length
@@ -67,12 +71,19 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
 
       {b.invoice_number && (
         <Card>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-sm font-semibold text-text">Invoice {b.invoice_number}</div>
-              <div className="text-xs text-text-muted">Paid · {fmtAED(b.total_fils)}</div>
+              <div className="text-xs text-text-muted">Paid · {fmtAED(b.total_fils)} (incl. VAT)</div>
             </div>
-            <Link href="#" className="text-sm text-accent font-medium">Download PDF</Link>
+            {invoiceId && (
+              <a
+                href={`/api/invoices/${invoiceId}/pdf`}
+                className="shrink-0 inline-flex items-center h-10 px-4 rounded-md bg-accent text-on-accent text-sm font-medium hover:bg-accent-hover"
+              >
+                Download PDF
+              </a>
+            )}
           </div>
         </Card>
       )}

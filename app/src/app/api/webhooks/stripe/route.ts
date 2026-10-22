@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe';
 import { db, schema } from '@/db/client';
-import { markPaid, issueInvoiceFor, sendInvoiceEmailNow, topupCompany } from '@/lib/data';
+import { markPaid, issueInvoiceFor, sendInvoiceEmailNow, topupCompany, notifyOpsOfBooking } from '@/lib/data';
 import { eq } from 'drizzle-orm';
 import type Stripe from 'stripe';
 
@@ -57,6 +57,7 @@ export async function POST(req: Request) {
         await markPaid(booking_id, 'card', s.payment_intent as string);
         const inv = await issueInvoiceFor(booking_id);
         try { await sendInvoiceEmailNow(inv.id); } catch (e) { console.warn('[webhook] email', e); }
+        try { await notifyOpsOfBooking(booking_id); } catch (e) { console.warn('[webhook] ops-notify', e); }
         break;
       }
       case 'checkout.session.async_payment_failed':
