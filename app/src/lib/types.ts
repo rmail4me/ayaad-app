@@ -41,11 +41,16 @@ export interface Address {
   id: string;
   user_id: string;
   label: string;
-  line1: string;
+  building_name?: string | null;
+  unit_number?: string | null;
+  block?: string | null;
+  line1: string;                 // street / area / landmark
   line2?: string | null;
   city: string;
   emirate_or_region?: string | null;
   country: Country;
+  lat?: number | null;
+  lng?: number | null;
   access_method: 'home_present' | 'key_with_security' | 'under_mat' | 'unlocked';
   access_notes?: string | null;
   pets: boolean;

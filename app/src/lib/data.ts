@@ -41,8 +41,12 @@ const toCompany = (r: any): Company => ({
   prepaid_balance_fils: Number(r.prepaidBalanceFils), currency: r.currency, active: r.active,
 });
 const toAddress = (r: any): Address => ({
-  id: r.id, user_id: r.userId, label: r.label, line1: r.line1, line2: r.line2,
+  id: r.id, user_id: r.userId, label: r.label,
+  building_name: r.buildingName, unit_number: r.unitNumber, block: r.block,
+  line1: r.line1, line2: r.line2,
   city: r.city, emirate_or_region: r.emirateOrRegion, country: r.country,
+  lat: r.lat !== null && r.lat !== undefined ? Number(r.lat) : null,
+  lng: r.lng !== null && r.lng !== undefined ? Number(r.lng) : null,
   access_method: r.accessMethod, access_notes: r.accessNotes, pets: r.pets, is_default: r.isDefault,
 });
 
@@ -154,8 +158,13 @@ export async function addAddress(input: Omit<Address, 'id'>): Promise<Address> {
       .where(eq(schema.addresses.userId, input.user_id));
   }
   const [row] = await db.insert(schema.addresses).values({
-    userId: input.user_id, label: input.label, line1: input.line1, line2: input.line2,
+    userId: input.user_id, label: input.label,
+    buildingName: input.building_name ?? null,
+    unitNumber: input.unit_number ?? null,
+    block: input.block ?? null,
+    line1: input.line1, line2: input.line2,
     city: input.city, emirateOrRegion: input.emirate_or_region, country: input.country,
+    lat: input.lat?.toString() ?? null, lng: input.lng?.toString() ?? null,
     accessMethod: input.access_method, accessNotes: input.access_notes,
     pets: input.pets, isDefault: input.is_default,
   }).returning();
